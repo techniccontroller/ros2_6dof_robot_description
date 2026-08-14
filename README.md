@@ -29,6 +29,13 @@ gripper is controlled by `gripper_joint`: 0 to 180 degrees maps linearly to a
 between the fingers, 15 mm inward from their tips. RViz shows the TF frames by
 default.
 
+The arm joint limits are taken from the Pico firmware: J2 is -75 to 70 degrees,
+J3 is -50 to 54 degrees, J4 is -160 to 160 degrees, J5 is -100 to 100 degrees,
+and J6 is -120 to 120 degrees. J1 uses a configured -95 to 95 degree range.
+Because J2 and J3 use a parallel linkage, the firmware additionally enforces the coupled
+constraint `-10 deg <= J3 - J2 <= 85 deg`; this cannot be expressed by basic
+per-joint URDF limits and must also be enforced by the controller/planner.
+
 ## Model status
 
 This model is appropriate for visualization and initial kinematic work. The

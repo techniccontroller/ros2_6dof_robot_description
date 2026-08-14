@@ -28,9 +28,10 @@
       centre to the gripper flange; tcp_link is another 0.015 m outward. This
       simplified spherical wrist is useful for IK and is not intended to
       reproduce bearings or housings precisely.
-    * Link cross-sections, masses, inertia tensors and joint limits are rough,
-      positive, physically plausible placeholders. Replace them with measured
-      CAD/mass properties and hardware limits before dynamics or real operation.
+    * Link cross-sections, masses, inertia tensors, efforts and velocities are
+      rough, physically plausible placeholders. J2-J6 position limits come
+      from the firmware; J1 uses the configured -95..95 degree travel range.
+      Verify all properties before operation.
     * Collision geometry intentionally matches the simple visual primitives.
 -->
 <robot name="rough_6dof_arm">
@@ -80,7 +81,7 @@
     <child link="shoulder_link"/>
     <origin xyz="0 0 0.14150" rpy="0 0 0"/>
     <axis xyz="0 0 1"/>
-    <limit lower="-3.14159" upper="3.14159" effort="100" velocity="1.5"/>
+    <limit lower="-1.65806278939" upper="1.65806278939" effort="100" velocity="1.5"/>
     <dynamics damping="0.15" friction="0.05"/>
   </joint>
 
@@ -106,7 +107,8 @@
     <child link="upper_arm_link"/>
     <origin xyz="0 0 0" rpy="0 0 0"/>
     <axis xyz="0 1 0"/>
-    <limit lower="-2.61799" upper="2.61799" effort="100" velocity="1.5"/>
+    <!-- Firmware LIMIT_ENCODER_E2_MIN/MAX: -75..70 deg. -->
+    <limit lower="-1.30899693900" upper="1.22173047640" effort="100" velocity="1.5"/>
     <dynamics damping="0.15" friction="0.05"/>
   </joint>
 
@@ -132,7 +134,8 @@
     <child link="forearm_link"/>
     <origin xyz="0 0 0.200" rpy="0 0 0"/>
     <axis xyz="0 1 0"/>
-    <limit lower="-2.61799" upper="2.61799" effort="80" velocity="1.8"/>
+    <!-- Firmware serial J3 (E2 + E3) difference limits: -50..54 deg. -->
+    <limit lower="-0.872664625997" upper="0.942477796077" effort="80" velocity="1.8"/>
     <dynamics damping="0.12" friction="0.04"/>
   </joint>
 
@@ -158,7 +161,8 @@
     <child link="wrist_1_link"/>
     <origin xyz="0.24525 0 0" rpy="0 0 0"/>
     <axis xyz="1 0 0"/>
-    <limit lower="-3.14159" upper="3.14159" effort="35" velocity="2.5"/>
+    <!-- Firmware LIMIT_J4_MIN/MAX: -160..160 deg. -->
+    <limit lower="-2.79252680319" upper="2.79252680319" effort="35" velocity="2.5"/>
     <dynamics damping="0.08" friction="0.03"/>
   </joint>
 
@@ -184,7 +188,8 @@
     <child link="wrist_2_link"/>
     <origin xyz="0 0 0" rpy="0 0 0"/>
     <axis xyz="0 1 0"/>
-    <limit lower="-2.61799" upper="2.61799" effort="30" velocity="2.5"/>
+    <!-- Firmware LIMIT_J5_MIN/MAX: -100..100 deg. -->
+    <limit lower="-1.74532925199" upper="1.74532925199" effort="30" velocity="2.5"/>
     <dynamics damping="0.06" friction="0.02"/>
   </joint>
 
@@ -210,7 +215,8 @@
     <child link="tool_link"/>
     <origin xyz="0 0 0" rpy="0 0 0"/>
     <axis xyz="1 0 0"/>
-    <limit lower="-3.14159" upper="3.14159" effort="25" velocity="3.0"/>
+    <!-- Firmware LIMIT_J6_MIN/MAX: -120..120 deg. -->
+    <limit lower="-2.09439510239" upper="2.09439510239" effort="25" velocity="3.0"/>
     <dynamics damping="0.05" friction="0.02"/>
   </joint>
 
