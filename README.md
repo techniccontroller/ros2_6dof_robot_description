@@ -23,8 +23,11 @@ ros2 launch ros2_6dof_robot_description display.launch.py \
   use_joint_state_publisher:=false
 ```
 
-The driver and URDF both use `joint_1` through `joint_6`. The root frame is
-`base_link` and the end-effector reference frame is `tcp_link`.
+The driver and URDF both use `joint_1` through `joint_6`. The parallel-jaw
+gripper is controlled by `gripper_joint`: 0 to 180 degrees maps linearly to a
+0 to 40 mm jaw opening. The root frame is `base_link`; `tcp_link` is centred
+between the fingers, 15 mm inward from their tips. RViz shows the TF frames by
+default.
 
 ## Model status
 

@@ -36,14 +36,14 @@ Visualization Manager:
       Value: true
       Visual Enabled: true
     - Class: rviz_default_plugins/TF
-      Enabled: false
+      Enabled: true
       Frame Timeout: 15
       Marker Scale: 0.1
       Name: Frames
       Show Arrows: true
       Show Axes: true
       Show Names: true
-      Value: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48

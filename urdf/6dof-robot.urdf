@@ -16,7 +16,7 @@
     L0 = 0.14150 m  base-to-shoulder height
     L1 = 0.20000 m  upper-arm length (joint 2 to joint 3)
     L2 = 0.24525 m  forearm length (joint 3 to wrist centre)
-    L3 = 0.09000 m  wrist-centre-to-TCP distance
+    L3 = 0.09000 m  wrist-centre-to-gripper-flange distance
 
   Assumptions (the sketch alone does not fully define the joint frames):
     * In the zero pose, L0 and L1 extend vertically along +Z so the shoulder
@@ -24,9 +24,10 @@
     * Joint axes use a common industrial-arm arrangement:
       J1=Z (base yaw), J2=Y (shoulder pitch), J3=Y (elbow pitch),
       J4=X (wrist roll), J5=Y (wrist pitch), J6=X (tool roll).
-    * J4, J5 and J6 intersect at one idealized wrist centre. L3 therefore runs
-      from that centre to tcp_link. This simplified spherical wrist is useful
-      for IK and is not intended to reproduce bearings or housings precisely.
+    * J4, J5 and J6 intersect at one idealized wrist centre. L3 runs from that
+      centre to the gripper flange; tcp_link is another 0.015 m outward. This
+      simplified spherical wrist is useful for IK and is not intended to
+      reproduce bearings or housings precisely.
     * Link cross-sections, masses, inertia tensors and joint limits are rough,
       positive, physically plausible placeholders. Replace them with measured
       CAD/mass properties and hardware limits before dynamics or real operation.
@@ -38,6 +39,7 @@
   <material name="arm_blue"><color rgba="0.10 0.38 0.72 1"/></material>
   <material name="joint_dark"><color rgba="0.10 0.11 0.13 1"/></material>
   <material name="tool_orange"><color rgba="0.95 0.42 0.08 1"/></material>
+  <material name="gripper_gray"><color rgba="0.45 0.48 0.52 1"/></material>
 
   <link name="base_link">
     <visual>
@@ -212,12 +214,100 @@
     <dynamics damping="0.05" friction="0.02"/>
   </joint>
 
-  <!-- MoveIt end-effector reference frame; +X points out of the flange. -->
+  <!-- Parallel-jaw gripper. +X points from the flange toward the fingertips. -->
+  <link name="gripper_base_link">
+    <visual>
+      <origin xyz="-0.0075 0 0" rpy="0 1.57079632679 0"/>
+      <geometry><cylinder radius="0.035" length="0.015"/></geometry>
+      <material name="gripper_gray"/>
+    </visual>
+    <collision>
+      <origin xyz="-0.0075 0 0" rpy="0 1.57079632679 0"/>
+      <geometry><cylinder radius="0.035" length="0.015"/></geometry>
+    </collision>
+    <inertial>
+      <origin xyz="-0.0075 0 0" rpy="0 0 0"/>
+      <mass value="0.20"/>
+      <inertia ixx="0.000123" ixy="0" ixz="0" iyy="0.000065" iyz="0" izz="0.000065"/>
+    </inertial>
+  </link>
+  <joint name="gripper_mount_joint" type="fixed">
+    <parent link="tool_link"/>
+    <child link="gripper_base_link"/>
+    <origin xyz="0.090 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <!--
+    User-facing gripper command: 0..pi rad (0..180 deg). The command link is
+    intentionally massless/geometry-free; the two jaw slides mimic this joint.
+    Each slide travels 0..20 mm, giving 0..40 mm between the inner jaw faces.
+  -->
+  <link name="gripper_command_link"/>
+  <joint name="gripper_joint" type="revolute">
+    <parent link="gripper_base_link"/>
+    <child link="gripper_command_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <axis xyz="1 0 0"/>
+    <limit lower="0" upper="3.14159265359" effort="20" velocity="2.0"/>
+    <dynamics damping="0.05" friction="0.01"/>
+  </joint>
+
+  <link name="left_finger_link">
+    <visual>
+      <origin xyz="0.015 0.004 0" rpy="0 0 0"/>
+      <geometry><box size="0.030 0.008 0.012"/></geometry>
+      <material name="gripper_gray"/>
+    </visual>
+    <collision>
+      <origin xyz="0.015 0.004 0" rpy="0 0 0"/>
+      <geometry><box size="0.030 0.008 0.012"/></geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0.015 0.004 0" rpy="0 0 0"/>
+      <mass value="0.04"/>
+      <inertia ixx="0.00000069" ixy="0" ixz="0" iyy="0.00000348" iyz="0" izz="0.00000321"/>
+    </inertial>
+  </link>
+  <joint name="left_finger_joint" type="prismatic">
+    <parent link="gripper_base_link"/>
+    <child link="left_finger_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="0" upper="0.020" effort="20" velocity="0.05"/>
+    <mimic joint="gripper_joint" multiplier="0.006366197724" offset="0"/>
+  </joint>
+
+  <link name="right_finger_link">
+    <visual>
+      <origin xyz="0.015 -0.004 0" rpy="0 0 0"/>
+      <geometry><box size="0.030 0.008 0.012"/></geometry>
+      <material name="gripper_gray"/>
+    </visual>
+    <collision>
+      <origin xyz="0.015 -0.004 0" rpy="0 0 0"/>
+      <geometry><box size="0.030 0.008 0.012"/></geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0.015 -0.004 0" rpy="0 0 0"/>
+      <mass value="0.04"/>
+      <inertia ixx="0.00000069" ixy="0" ixz="0" iyy="0.00000348" iyz="0" izz="0.00000321"/>
+    </inertial>
+  </link>
+  <joint name="right_finger_joint" type="prismatic">
+    <parent link="gripper_base_link"/>
+    <child link="right_finger_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <axis xyz="0 -1 0"/>
+    <limit lower="0" upper="0.020" effort="20" velocity="0.05"/>
+    <mimic joint="gripper_joint" multiplier="0.006366197724" offset="0"/>
+  </joint>
+
+  <!-- TCP is centred between the jaws, 15 mm back from their 30 mm tips. -->
   <link name="tcp_link"/>
   <joint name="tcp_fixed_joint" type="fixed">
-    <parent link="tool_link"/>
+    <parent link="gripper_base_link"/>
     <child link="tcp_link"/>
-    <origin xyz="0.090 0 0" rpy="0 0 0"/>
+    <origin xyz="0.015 0 0" rpy="0 0 0"/>
   </joint>
 
 </robot>
