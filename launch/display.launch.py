@@ -28,8 +28,11 @@ def generate_launch_description():
     )
 
     use_gui = LaunchConfiguration("use_gui")
-    use_joint_state_publisher = LaunchConfiguration("use_joint_state_publisher")
+    use_joint_state_publisher = LaunchConfiguration(
+        "use_joint_state_publisher"
+    )
     use_rviz = LaunchConfiguration("use_rviz")
+    rviz_node_name = LaunchConfiguration("rviz_node_name")
 
     gui_condition = IfCondition(
         PythonExpression(
@@ -74,6 +77,11 @@ def generate_launch_description():
                 default_value="true",
                 description="Start RViz with the package configuration.",
             ),
+            DeclareLaunchArgument(
+                "rviz_node_name",
+                default_value="rviz2",
+                description="ROS node name for the RViz process.",
+            ),
             Node(
                 package="robot_state_publisher",
                 executable="robot_state_publisher",
@@ -96,7 +104,7 @@ def generate_launch_description():
             Node(
                 package="rviz2",
                 executable="rviz2",
-                name="rviz2",
+                name=rviz_node_name,
                 output="screen",
                 arguments=["-d", str(package_share / "rviz" / "display.rviz")],
                 condition=IfCondition(use_rviz),
